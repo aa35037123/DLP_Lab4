@@ -74,10 +74,13 @@ class Gaussian_Predictor(nn.Sequential):
             nn.LeakyReLU(True),
             nn.Conv2d(out_chans, out_chans*2, kernel_size=1)
         )
-        
+    
     def reparameterize(self, mu, logvar):
-        # TODO
-        raise NotImplementedError
+        std = torch.exp(0.5 * logvar)
+        # it means generate N(0, 1) standard normalize distribution which size is the same as std 
+        epsilon = torch.rand_like(std)   
+        z = mu + epsilon * std
+        return z
 
     def forward(self, img, label):
         feature = torch.cat([img, label], dim=1)
@@ -96,7 +99,7 @@ class Decoder_Fusion(nn.Sequential):
             DepthConvBlock(in_chans//4, in_chans//2),
             ResidualBlock(in_chans//2, in_chans//2),
             DepthConvBlock(in_chans//2, out_chans//2),
-            nn.Conv2d(out_chans//2, out_chans, 1, 1)
+            nn.Conv2d(out_chans//2, out_chans, 1, 1) # in_channels, out_channels, kernel_size, stride, padding
         )
         
     def forward(self, img, label, parm):

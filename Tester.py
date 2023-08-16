@@ -168,7 +168,7 @@ class Test_model(VAE_Model):
             parm = self.Decoder_Fusion(human_feat_hat, label_feat, z)    
             out = self.Generator(parm)
             
-            decoded_frame_list.append(out.cpu())
+            decoded_frame_list.append(out.cpu()) # put tensor on cpu help following visualize and processing 
             label_list.append(label[i].cpu())
             
         
@@ -177,7 +177,8 @@ class Test_model(VAE_Model):
         
         os.makedirs(os.path.join(args.save_root, f'seq{idx}'), exist_ok=True)
 
-        self.make_gif(generated_frame[0], os.path.join(self.args.save_root, f'seq{idx}/pred_seq.gif'))
+        # The reason why images_list only pass generated_frame[0] is because batch size is 0
+        self.make_gif(generated_frame[0], os.path.join(self.args.save_root, f'seq{idx}/pred_seq.gif')) 
         self.make_gif(label_frame[0], os.path.join(self.args.save_root, f'seq{idx}/pose.gif'))
         PSNR = calculate_PSNR(self.args.save_root, generated_frame, idx)
         return PSNR
