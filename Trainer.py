@@ -114,7 +114,7 @@ class VAE_Model(nn.Module):
         self.val_vi_len   = args.val_vi_len
         self.batch_size = args.batch_size
         
-        self.path_train_ckpt = os.path.join(self.args.save_root, 'train', 'check_point')
+        self.path_train_ckpt = os.path.join(self.args.save_root, 'train', 'check_point_wokl')
         self.path_train_fig = os.path.join(self.args.save_root, 'train', 'fig_file')
         self.path_train_loss_compare_fig = os.path.join(self.path_train_fig, 'loss_compare.png')
         self.path_train_tfr_fig = os.path.join(self.path_train_fig, 'tfr_curve.png')
@@ -166,10 +166,10 @@ class VAE_Model(nn.Module):
                     self.make_gif(images_list=label_list[i], 
                                     img_name=os.path.join(self.path_train_gif, f'ep{self.current_epoch}_pose{i}.gif')) 
                 if adapt_TeacherForcing:
-                    self.tqdm_bar('train [TeacherForcing: ON, {:.1f}], beta: {}'.format(self.tfr, beta), 
+                    self.tqdm_bar('train [TeacherForcing: ON, {:.1f}], beta: {:.1f}'.format(self.tfr, beta), 
                                     pbar, loss.detach().cpu(), lr=self.scheduler.get_last_lr()[0])
                 else:
-                    self.tqdm_bar('train [TeacherForcing: OFF, {:.1f}], beta: {}'.format(self.tfr, beta), 
+                    self.tqdm_bar('train [TeacherForcing: OFF, {:.1f}], beta: {:.1f}'.format(self.tfr, beta), 
                                     pbar, loss.detach().cpu(), lr=self.scheduler.get_last_lr()[0])
             
             avg_loss = model_loss / len(train_loader.dataset)
@@ -183,10 +183,10 @@ class VAE_Model(nn.Module):
             self.scheduler.step()
             self.teacher_forcing_ratio_update()
             self.kl_annealing.update()
-        fig_tfr = self.plot_tfr(tfr_list)
-        fig_tfr.savefig(os.path.join(self.path_train_fig, 'teacher_forcing_rate.png'))
+        # fig_tfr = self.plot_tfr(tfr_list)
+        # fig_tfr.savefig(os.path.join(self.path_train_fig, 'teacher_forcing_rate.png'))
         df[f'train w/{self.args.kl_anneal_type}'] = loss_list
-        df.to_csv(os.path.join(self.path_train_csv, f'loss_{self.args.kl_anneal_type}_ep{self.current_epoch}-{self.current_epoch+self.args.num_epoch}.csv'), index=False)    
+        df.to_csv(os.path.join(self.path_train_csv, f'loss_{self.args.kl_anneal_type}_ep{self.current_epoch-self.args.num_epoch}-{self.current_epoch}.csv'), index=False)    
             
     @torch.no_grad()
     def eval(self):
