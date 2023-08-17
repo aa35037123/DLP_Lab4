@@ -122,8 +122,8 @@ class VAE_Model(nn.Module):
         self.path_train_gif = os.path.join(self.args.save_root, 'train', 'gif_file')
         
         self.path_train_csv = os.path.join(self.args.save_root, 'train', 'csv_file')
-        self.path_train_loss_cyclical = os.path.join(self.path_train_csv, 'loss_Cyclical.csv')
-        self.path_train_loss_monotonic = os.path.join(self.path_train_csv, 'loss_Monotonic.csv')
+        self.path_train_loss_cyclical = os.path.join(self.path_train_csv, 'loss_Cyclical_ep0-70.csv')
+        self.path_train_loss_monotonic = os.path.join(self.path_train_csv, 'loss_Wokl_ep6-58.csv')
         self.path_train_loss_wokl = os.path.join(self.path_train_csv, 'loss_Wokl.csv') # not using kl annealing
         
         
@@ -400,9 +400,13 @@ class VAE_Model(nn.Module):
         self.optim.step()
     def show_result_df(self, df):
         fig = plt.figure(figsize=(10, 6))
+        # print(df)
         for name in df.columns[1:]:
-            plt.plot('epoch', name, data=df)
+            plt.plot('epoch', name, data=df, label=name)
         plt.legend()
+        plt.xlabel('epoch')
+        plt.ylabel('loss')
+        plt.title('Model Loss Wokl')
         return fig
     def plot_loss(self):
         df_cyclical = pd.read_csv(self.path_train_loss_cyclical) if os.path.exists(self.path_train_loss_cyclical) else None
@@ -414,6 +418,14 @@ class VAE_Model(nn.Module):
         df_epochs = range(1, self.args.num_epoch)
         df_all_kl_annealing = pd.concat([df_epochs, df_cyclical, df_monotonic, df_wokl], axis=1, ignore_index=False)
         fig = self.show_result_df(df_all_kl_annealing)
+        fig.savefig(self.path_train_loss_compare_fig)
+        
+    def plot_one_loss(self, num_epoch):
+        df = pd.read_csv(self.path_train_loss_monotonic) if os.path.exists(self.path_train_loss_monotonic) else None
+        df_epochs = pd.DataFrame()
+        df_epochs['epoch'] = range(1, num_epoch+1)
+        df_all = pd.concat([df_epochs, df], axis=1, ignore_index=False)
+        fig = self.show_result_df(df_all)
         fig.savefig(self.path_train_loss_compare_fig)
 """
 --save_root : use in training process, save the model weight
@@ -430,10 +442,10 @@ def main(args):
     if args.test:
         model.eval()
     else:
-        model.training_stage()
+        # model.training_stage()
         
         # plot loss fig of different kl_rate in training 
-        model.plot_loss()
+        model.plot_one_loss(70)
 
 
 
